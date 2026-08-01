@@ -75,6 +75,7 @@ body{font-family:'Inter', sans-serif;background:var(--bg-main);color:var(--text-
 .product-name{font-family:'Cormorant Garamond', serif;font-size:clamp(14px, 2.5vw, 17px);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .product-price{font-size:12px;font-weight:600;margin-bottom:10px;}
 .product-price .strike{ text-decoration:line-through; opacity:.5; font-weight:400; margin-left:4px; }
+.product-desc{ font-size:11px; color:var(--text-light); line-height:1.4; margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .enquire-btn{width:100%;padding:8px;border:1px solid var(--text-dark);background:transparent;font-size:9px;letter-spacing:1.2px;cursor:pointer; transition:0.2s;}
 .enquire-btn:hover{background:var(--text-dark); color:var(--white);}
 
@@ -205,6 +206,7 @@ async function loadAllProducts(){
             name: p.name,
             price: p.price,
             discountedPrice: p.discountedPrice,
+            description: p.description,
             image: p.image
         }));
         renderProducts(products);
@@ -232,6 +234,7 @@ function renderProducts(list){
             <div class="product-info">
                 <p class="product-category">${p.category}</p>
                 <h3 class="product-name">${p.name}</h3>
+                ${p.description ? `<p class="product-desc">${p.description}</p>` : ''}
                 <p class="product-price">INR ₹${displayPrice}${p.discountedPrice ? `<span class="strike">₹${p.price}</span>` : ''}</p>
                 <button class="enquire-btn" data-id="${p.id}" data-name="${p.name}">ENQUIRE</button>
             </div>

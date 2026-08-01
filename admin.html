@@ -29,7 +29,7 @@
 <form id="form">
     <input type="hidden" id="editId">
     <div class="grid">
-        <input id="name" placeholder="Product Name" required>
+        <input id="pName" placeholder="Product Name" required>
         <select id="category" required>
             <option value="">Category</option>
             <option>ethnic wear</option>
@@ -98,7 +98,7 @@ async function load(){
 document.getElementById('form').addEventListener('submit', async e => {
     e.preventDefault();
     const fd = new FormData();
-    fd.append('name', name.value);
+    fd.append('name', pName.value);
     fd.append('category', category.value);
     fd.append('price', price.value);
     fd.append('discountedPrice', discountedPrice.value);
@@ -124,7 +124,7 @@ window.editProd = async (id) => {
     const data = await res.json();
     const p = data.find(x => x._id === id);
     editId.value = p._id;
-    name.value = p.name;
+    pName.value = p.name;
     category.value = p.category;
     price.value = p.price;
     discountedPrice.value = p.discountedPrice || '';

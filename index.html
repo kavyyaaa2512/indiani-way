@@ -552,6 +552,7 @@
             <div class="product-details">
               <span class="product-tag">${p.category}</span>
               <h3 class="product-name">${p.name}</h3>
+              ${p.description ? `<p class="product-desc">${p.description}</p>` : ''}
               <p class="product-price">
                 INR &#8377;${p.discountedPrice ? p.discountedPrice : p.price}
                 ${p.discountedPrice ? `<span class="strike">₹${p.price}</span>` : ''}

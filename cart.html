@@ -152,15 +152,9 @@ function calculateTotal(cart){
 function updateCartBadge(){
     const cart = loadCart();
     const countEl = document.getElementById('cartCount');
+    if(!countEl) return;
     const totalQty = cart.reduce((s,i)=>s+i.qty,0);
     if(totalQty > 0){ countEl.style.display='inline-block'; countEl.textContent=totalQty; }
-    else { countEl.style.display='none'; }
-}
-
-function updateEnquiryBadge(){
-    const enquiries = JSON.parse(localStorage.getItem('indiani_enquiries') || '[]');
-    const countEl = document.getElementById('enquiryCount');
-    if(enquiries.length > 0){ countEl.style.display='inline-block'; countEl.textContent=enquiries.length; }
     else { countEl.style.display='none'; }
 }
 
@@ -347,7 +341,6 @@ async function handlePlaceOrder(e){
 
 document.addEventListener('DOMContentLoaded', () => {
     renderCart();
-    updateEnquiryBadge();
 });
 </script>
 </body>

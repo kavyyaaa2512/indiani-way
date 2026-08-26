@@ -133,11 +133,8 @@ body{font-family:'Inter', sans-serif;background:var(--bg-main);color:var(--text-
     <ul class="nav-links">
         <li><a href="index.html">HOME</a></li>
         <li><a href="product.html" class="active">PRODUCTS</a></li>
-        <li><a href="#" id="yourEnquiriesLink">ENQUIRIES <span id="enquiryCount" class="enquiry-count" style="display:none">0</span></a></li>
-        <!-- <li><a href="#" id="yourCartLink">CART <span id="cartCount" class="enquiry-count" style="display:none">0</span></a></li> -->
         <li><a href="cart.html" id="cart">CART <span id="cartCount" class="enquiry-count" style="display:none">0</span></a></li>
-        <li><a href="orders.html" id="yourOrdersLink">PLACED ORDERS<span id="cartCount" class="enquiry-count" style="display:none">0</span></a></li>
-    </ul>
+        <li><a href="orders.html" id="yourOrdersLink">PLACED ORDERS</a></li>
 </nav>
 
 <div id="mainShop">
@@ -164,30 +161,13 @@ body{font-family:'Inter', sans-serif;background:var(--bg-main);color:var(--text-
     <div class="product-grid" id="productGrid"></div>
 </div>
 
-<div id="enquiriesPage" class="enquiries-page">
+<!-- <div id="enquiriesPage" class="enquiries-page">
     <h1 class="main-heading" style="margin-bottom:20px">Your Enquiries</h1>
     <div id="enquiriesList"></div>
     <p id="emptyEnq" style="opacity:0.6; font-size:14px;">No enquiries yet. Enquire about a piece and it will appear here.</p>
-</div>
+</div> -->
 
-<div id="cartPage" class="cart-page">
-    <h1 class="main-heading" style="margin-bottom:20px">Your Cart</h1>
-    <div id="cartList"></div>
-    <p id="emptyCart" style="opacity:0.6; font-size:14px; display:none;">Cart is empty, please add products.</p>
-    <div id="checkoutSection" style="display:none;">
-        <h3 id="cartTotal" style="font-family:'Cormorant Garamond';margin:20px 0;"></h3>
-        <form id="checkoutForm">
-            <input type="text" id="custName" placeholder="Full Name" required>
-            <input type="tel" id="custPhone" placeholder="Phone Number" required pattern="[0-9]{10}">
-            <input type="email" id="custEmail" placeholder="Email Address" required>
-            <textarea id="custAddress" placeholder="Full Address" required></textarea>
-            <input type="text" id="custPincode" placeholder="Pincode" required>
-            <button type="submit" style="background:#3D1F10;color:#fff;padding:14px;border:none;letter-spacing:1.5px;cursor:pointer;">PLACE ORDER - COD</button>
-        </form>
-    </div>
-</div>
-
-<div class="modal-overlay" id="enquireModal">
+<!-- <div class="modal-overlay" id="enquireModal">
     <div class="modal">
         <button class="modal-close" id="modalClose">✕</button>
         <h3 class="modal-title">Enquire About This Piece</h3>
@@ -206,7 +186,7 @@ body{font-family:'Inter', sans-serif;background:var(--bg-main);color:var(--text-
             <button onclick="closeModal()" style="margin-top:14px; padding:10px 20px; border:1px solid #3D2116; background:transparent; cursor:pointer; font-size:10px; letter-spacing:1px;">CONTINUE SHOPPING</button>
         </div>
     </div>
-</div>
+</div> -->
 
 <script>
 /* Sab products yahan backend (MongoDB + Cloudinary) se aate hain.
@@ -215,7 +195,7 @@ body{font-family:'Inter', sans-serif;background:var(--bg-main);color:var(--text-
 
 let products = [];
 let wishlist = JSON.parse(localStorage.getItem('indiani_wishlist') || '[]');
-let enquiries = JSON.parse(localStorage.getItem('indiani_enquiries') || '[]');
+<!-- let enquiries = JSON.parse(localStorage.getItem('indiani_enquiries') || '[]'); -->
 let cart = JSON.parse(localStorage.getItem('indiani_cart') || '[]');
 let currentEnquiryProduct = null;
 
@@ -236,6 +216,7 @@ async function loadAllProducts(){
             name: p.name,
             price: p.price,
             discountedPrice: p.discountedPrice,
+            description: p.description,
             image: p.image
         }));
         renderProducts(products);
@@ -263,14 +244,15 @@ function renderProducts(list){
             <div class="product-info">
                 <p class="product-category">${p.category}</p>
                 <h3 class="product-name">${p.name}</h3>
+                ${p.description ? `<p class="product-desc">${p.description}</p>` : ''}
                 <p class="product-price">INR ₹${displayPrice}${p.discountedPrice ? `<span class="strike">₹${p.price}</span>` : ''}</p>
-                <button class="enquire-btn" data-id="${p.id}" data-name="${p.name}">ENQUIRE</button>
                 <button class="cart-btn" data-id="${p.id}">ADD TO CART</button>
             </div>
         </div>`;
     });
     attachCardEvents();
 }
+
 
 function attachCardEvents(){
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
@@ -339,6 +321,14 @@ modalForm.addEventListener('submit', (e)=>{
     modalSuccess.style.display = 'block';
     modalForm.reset();
 });
+
+function updateCartCount(){
+    const countEl = document.getElementById('cartCount');
+    if(!countEl) return;
+    const totalQty = cart.reduce((s,i)=>s+i.qty,0);
+    if(totalQty > 0){ countEl.style.display='inline-block'; countEl.textContent=totalQty; }
+    else { countEl.style.display='none'; }
+}
 
 function updateEnquiryCount(){
     const countEl = document.getElementById('enquiryCount');
@@ -456,8 +446,6 @@ document.getElementById('checkoutForm').addEventListener('submit', async (e)=>{
 });
 
 loadAllProducts();
-updateEnquiryCount();
-renderEnquiries();
 </script>
 </body>
 </html>

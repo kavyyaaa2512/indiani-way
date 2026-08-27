@@ -514,7 +514,7 @@
     </div>
   </footer>
 
-  <script>
+<script>
     /* ---- BUILD PRODUCT CARDS FROM THE BACKEND ---- */
     async function loadFeaturedProducts() {
       const grid = document.getElementById('productGrid');
@@ -540,9 +540,8 @@
                 INR &#8377;${p.discountedPrice ? p.discountedPrice : p.price}
                 ${p.discountedPrice ? `<span class="strike">₹${p.price}</span>` : ''}
               </p>
-                <div class="product-actions">
-                  <button class="btn-add-cart" data-id="${p._id}" type="button">Add to Cart</button>
-                </div>
+              <div class="product-actions">
+                <button class="btn-add-cart" data-id="${p._id}" data-name="${p.name}" data-category="${p.category}" data-image="${p.image}" data-price="${p.price}" data-discounted="${p.discountedPrice || ''}" type="button">Add to Cart</button>
               </div>
             </div>
           </div>
@@ -562,43 +561,43 @@
           btn.innerHTML = isWished ? '&#9829;' : '&#9825;';
         });
       });
-    }
-    document.querySelectorAll('.btn-add-cart').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const id = btn.getAttribute('data-id');
-    let cart = JSON.parse(localStorage.getItem('indiani_cart') || '[]');
-    const existing = cart.find(c => c.id === id);
-    if(existing){ existing.qty += 1; }
-    else {
-      // homepage data me description bhi hai product object me nahi rakha, id+name+price+image kaafi hai cart ke liye
-      const card = btn.closest('.product-card');
-      cart.push({
-        id,
-        name: card.querySelector('.product-name').textContent,
-        category: card.querySelector('.product-tag').textContent,
-        image: card.querySelector('img').src,
-        price: card.querySelector('.strike') ? card.querySelector('.strike').textContent.replace('₹','') : card.querySelector('.product-price').textContent.replace(/[^0-9]/g,''),
-        discountedPrice: card.querySelector('.strike') ? card.querySelector('.product-price').textContent.match(/\d+/)[0] : null,
-        qty: 1
+
+      document.querySelectorAll('.btn-add-cart').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.getAttribute('data-id');
+          let cart = JSON.parse(localStorage.getItem('indiani_cart') || '[]');
+          const existing = cart.find(c => c.id === id);
+          if (existing) {
+            existing.qty += 1;
+          } else {
+            cart.push({
+              id,
+              name: btn.getAttribute('data-name'),
+              category: btn.getAttribute('data-category'),
+              image: btn.getAttribute('data-image'),
+              price: btn.getAttribute('data-price'),
+              discountedPrice: btn.getAttribute('data-discounted') || null,
+              qty: 1
+            });
+          }
+          localStorage.setItem('indiani_cart', JSON.stringify(cart));
+          updateHomeCartCount();
+          alert('Added to cart');
+        });
       });
     }
-    localStorage.setItem('indiani_cart', JSON.stringify(cart));
-    updateHomeCartCount();
-    alert('Added to cart');
-  });
-});
 
-function updateHomeCartCount(){
-  const cart = JSON.parse(localStorage.getItem('indiani_cart') || '[]');
-  const countEl = document.getElementById('cartCount');
-  if(!countEl) return;
-  const totalQty = cart.reduce((s,i)=>s+i.qty,0);
-  if(totalQty > 0){ countEl.style.display='inline-block'; countEl.textContent=totalQty; }
-  else { countEl.style.display='none'; }
-}
-updateHomeCartCount();
+    function updateHomeCartCount(){
+      const cart = JSON.parse(localStorage.getItem('indiani_cart') || '[]');
+      const countEl = document.getElementById('cartCount');
+      if(!countEl) return;
+      const totalQty = cart.reduce((s,i)=>s+i.qty,0);
+      if(totalQty > 0){ countEl.style.display='inline-block'; countEl.textContent=totalQty; }
+      else { countEl.style.display='none'; }
+    }
 
     loadFeaturedProducts();
+    updateHomeCartCount();
 
     /* ---- PRELOADER ---- */
     window.addEventListener('load', () => {
@@ -699,23 +698,6 @@ updateHomeCartCount();
         track.style.transform = `translateX(-${index * 100}%)`;
       });
     });
-
-    /* ---- ENQUIRE MODAL HANDLING ---- */
-    const modalOverlay = document.getElementById('enquireModal');
-    const modalClose = document.getElementById('modalClose');
-    const modalProductName = document.getElementById('modalProductName');
-    const modalForm = document.getElementById('modalForm');
-    const modalSuccess = document.getElementById('modalSuccess');
-
-    modalClose.addEventListener('click', () => modalOverlay.classList.remove('open'));
-    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) modalOverlay.classList.remove('open'); });
-    modalForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      modalForm.style.display = 'none';
-      modalSuccess.style.display = 'block';
-    });
-
-
   </script>
 </body>
 </html>

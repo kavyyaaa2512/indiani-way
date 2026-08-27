@@ -4,9 +4,11 @@ const cors = require('cors');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const nodemailer = require('nodemailer');  // changedd
 require('dotenv').config();
 
 const Product = require('../models/Product');
+const Order = require('../models/Order');
 
 const app = express();
 const ADMIN_KEY = process.env.ADMIN_KEY || 'INDIANI@2025';
@@ -59,6 +61,79 @@ function checkAdmin(req, res, next) {
   const key = req.headers['x-admin-key'] || req.query.key;
   if (key === ADMIN_KEY) next();
   else res.status(403).json({ message: 'Access Denied - galat key' });
+}
+
+/* ---------------- EMAIL (Nodemailer) ---------------- */
+let transporter = null;
+if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+} else {
+  console.log('Email not configured - EMAIL_USER / EMAIL_PASS missing in env');
+}
+
+async function sendOrderEmails(order) {
+  if (!transporter) return; // email configured nahi hai to silently skip, order save toh ho hi chuka hai
+
+  const itemsHtml = order.products.map(p => {
+    const price = p.discountedPrice || p.price;
+    return `<tr>
+      <td style="padding:8px;border-bottom:1px solid #eee;">${p.name}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee;">${p.qty}</td>
+      <td style="padding:8px;border-bottom:1px solid #eee;">₹${price}</td>
+    </tr>`;
+  }).join('');
+
+  const adminHtml = `
+    <h2>New Order Received - ${order.orderId}</h2>
+    <p><b>Customer:</b> ${order.customerName}</p>
+    <p><b>Phone:</b> ${order.customerPhone}</p>
+    <p><b>Email:</b> ${order.customerEmail}</p>
+    <p><b>Address:</b> ${order.customerAddress}, ${order.pincode}</p>
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="text-align:left;padding:8px;">Product</th><th style="text-align:left;padding:8px;">Qty</th><th style="text-align:left;padding:8px;">Price</th></tr>
+      ${itemsHtml}
+    </table>
+    <p><b>Total: ₹${order.totalAmount}</b></p>
+    <p>Payment: Cash on Delivery</p>
+  `;
+
+  const customerHtml = `
+    <h2>Thank you for your order, ${order.customerName}!</h2>
+    <p>Your order <b>${order.orderId}</b> has been placed successfully.</p>
+    <table style="border-collapse:collapse;width:100%;">
+      <tr><th style="text-align:left;padding:8px;">Product</th><th style="text-align:left;padding:8px;">Qty</th><th style="text-align:left;padding:8px;">Price</th></tr>
+      ${itemsHtml}
+    </table>
+    <p><b>Total: ₹${order.totalAmount}</b> (Cash on Delivery)</p>
+    <p>Delivery Address: ${order.customerAddress}, ${order.pincode}</p>
+    <p>We'll reach out to you shortly. Thank you for shopping with The Indiani Way!</p>
+  `;
+
+  try {
+    // Admin ko
+    await transporter.sendMail({
+      from: `"The Indiani Way" <${process.env.EMAIL_USER}>`,
+      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+      subject: `New Order: ${order.orderId}`,
+      html: adminHtml
+    });
+
+    // Customer ko
+    await transporter.sendMail({
+      from: `"The Indiani Way" <${process.env.EMAIL_USER}>`,
+      to: order.customerEmail,
+      subject: `Order Confirmed - ${order.orderId}`,
+      html: customerHtml
+    });
+  } catch (e) {
+    console.log('Email send error:', e.message); // order save ho chuka hai, email fail hui to bhi order safe hai
+  }
 }
 
 /* ================= ROUTES ================= */
@@ -123,6 +198,48 @@ app.delete('/api/products/:id', checkAdmin, async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: 'Deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 5. Public - Naya order place karna (cart checkout se)
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { orderId, customerName, customerPhone, customerEmail, customerAddress, pincode, products, totalAmount } = req.body;
+
+    if (!orderId || !customerName || !customerPhone || !customerEmail || !customerAddress || !pincode || !products || !products.length) {
+      return res.status(400).json({ error: 'Missing required order fields' });
+    }
+
+    const newOrder = new Order({
+      orderId,
+      customerName,
+      customerPhone,
+      customerEmail,
+      customerAddress,
+      pincode,
+      products,
+      totalAmount: Number(totalAmount)
+    });
+
+    await newOrder.save();
+
+    // Email async chalne do, order response ko block mat karo
+    sendOrderEmails(newOrder).catch(e => console.log('Email async error:', e.message));
+
+    res.status(201).json({ message: 'Order placed', order: newOrder });
+  } catch (err) {
+    console.log('ORDER SAVE ERROR:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 6. Private (admin) - saare orders dekhna
+app.get('/api/orders', checkAdmin, async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

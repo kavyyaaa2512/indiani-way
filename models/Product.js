@@ -10,7 +10,9 @@ const productSchema = new mongoose.Schema(
     description: { type: String, default: '' },
     image: { type: String, required: true }, // Cloudinary ka poora URL yahan store hoga
     // true = homepage (index.html) par bhi dikhega, warna sirf product.html par
-    isFeatured: { type: Boolean, default: false }
+    isFeatured: { type: Boolean, default: false },
+    // Available sizes — jo admin ne select ki hain wahi is array me aayengi
+    sizes: { type: [String], default: [] }
   },
   { timestamps: true }
 );

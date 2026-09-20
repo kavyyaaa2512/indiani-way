@@ -56,6 +56,18 @@
         <label for="isFeatured">Show on homepage (featured) </label>
     </div>
 
+    <p style="margin-top:10px; font-weight:bold;">Available Sizes</p>
+    <div class="checkbox-row">
+        <input type="checkbox" class="size-check" value="S" id="sizeS">
+        <label for="sizeS">S</label>
+        <input type="checkbox" class="size-check" value="M" id="sizeM">
+        <label for="sizeM">M</label>
+        <input type="checkbox" class="size-check" value="L" id="sizeL">
+        <label for="sizeL">L</label>
+        <input type="checkbox" class="size-check" value="XL" id="sizeXL">
+        <label for="sizeXL">XL</label>
+    </div>
+
     <button class="btn" type="submit">SAVE</button>
     <button class="btn secondary" type="button" id="cancel" style="display:none">Cancel Edit</button>
 </form>
@@ -104,6 +116,8 @@ document.getElementById('form').addEventListener('submit', async e => {
     fd.append('discountedPrice', discountedPrice.value);
     fd.append('description', description.value);
     fd.append('isFeatured', isFeatured.checked);
+    // Sirf jo sizes check ki hain wahi bhejo
+    document.querySelectorAll('.size-check:checked').forEach(chk => fd.append('sizes', chk.value));
     if(image.files[0]) fd.append('image', image.files[0]);
 
     const id = editId.value;
@@ -130,6 +144,12 @@ window.editProd = async (id) => {
     discountedPrice.value = p.discountedPrice || '';
     description.value = p.description || '';
     isFeatured.checked = !!p.isFeatured;
+
+    // Pehle sab size checkboxes uncheck karo, phir jo product me hain unhe check karo
+    document.querySelectorAll('.size-check').forEach(chk => {
+        chk.checked = (p.sizes || []).includes(chk.value);
+    });
+
     formTitle.innerText = 'Edit: ' + p.name;
     cancel.style.display = 'inline';
     window.scrollTo(0, 0);

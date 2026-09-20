@@ -154,7 +154,9 @@ app.get('/api/products', async (req, res) => {
 // 2. Private - Add product
 app.post('/api/products', checkAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, category, price, discountedPrice, description, isFeatured } = req.body;
+    const { name, category, price, discountedPrice, description, isFeatured, sizes } = req.body;
+    // FormData se checkbox multiple values aa sakti hain: array ya single string, dono handle karo
+    const sizesArr = sizes ? (Array.isArray(sizes) ? sizes : [sizes]) : [];
     const newProduct = new Product({
       name: (name || '').trim(),
       category: (category || '').trim().toLowerCase(),
@@ -162,8 +164,10 @@ app.post('/api/products', checkAdmin, upload.single('image'), async (req, res) =
       discountedPrice: discountedPrice ? Number(discountedPrice) : null,
       description: description || '',
       image: req.file ? req.file.path : 'https://via.placeholder.com/400x500?text=No+Image',
-      isFeatured: isFeatured === 'true' || isFeatured === true
+      isFeatured: isFeatured === 'true' || isFeatured === true,
+      sizes: sizesArr
     });
+
     await newProduct.save();
     res.json({ message: 'Product Added', product: newProduct });
   } catch (err) {
@@ -175,14 +179,16 @@ app.post('/api/products', checkAdmin, upload.single('image'), async (req, res) =
 // 3. Private - Update product
 app.put('/api/products/:id', checkAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { name, category, price, discountedPrice, description, isFeatured } = req.body;
+    const { name, category, price, discountedPrice, description, isFeatured, sizes } = req.body;
+    const sizesArr = sizes ? (Array.isArray(sizes) ? sizes : [sizes]) : [];
     const updateData = {
       name: (name || '').trim(),
       category: (category || '').trim().toLowerCase(),
       price: Number(price),
       discountedPrice: discountedPrice ? Number(discountedPrice) : null,
       description: description || '',
-      isFeatured: isFeatured === 'true' || isFeatured === true
+      isFeatured: isFeatured === 'true' || isFeatured === true,
+      sizes: sizesArr
     };
     if (req.file) updateData.image = req.file.path;
 

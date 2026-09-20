@@ -99,6 +99,7 @@ async function load(){
             <h4>${p.name} ${p.isFeatured ? '<span class="featured-badge">FEATURED</span>' : ''}</h4>
             <p>${p.category} | ₹${p.discountedPrice || p.price} ${p.discountedPrice ? `<s style='opacity:.6'>₹${p.price}</s>` : ''}</p>
             <p style='font-size:12px;opacity:.7'>${p.description || ''}</p>
+            <p style='font-size:11px;margin-top:4px;'>Sizes: ${(p.sizes && p.sizes.length) ? p.sizes.join(', ') : 'None'}</p>
             <div class="p-card-actions">
                 <button onclick="editProd('${p._id}')">EDIT</button>
                 <button onclick="delProd('${p._id}')">DELETE</button>

@@ -476,7 +476,7 @@ button:disabled { cursor: wait; }
   opacity: 0.4;
 }
 .founder-badge {
-  position: absolute; bottom: -24px; right: -24px;
+  position: absolute; bottom: -24px; right: -3px;
   width: 120px; height: 120px; border-radius: 50%;
   background: var(--brown-dark);
   display: flex; flex-direction: column;
